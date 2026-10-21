@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cheapkart-frontend
+  namespace: cheapkart
+  labels:
+    app.kubernetes.io/name: cheapkart-frontend
+    app.kubernetes.io/part-of: cheapkart
+spec:
+  # This is the only public application Service. AWS provisions a load
+  # balancer; point the domain's DNS record at its hostname after it is ready.
+  type: LoadBalancer
+  selector:
+    app.kubernetes.io/name: cheapkart-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cheapkart-backend
+  namespace: cheapkart
+  labels:
+    app.kubernetes.io/name: cheapkart-backend
+    app.kubernetes.io/part-of: cheapkart
+spec:
+  # The API process also subscribes to Solace and sends email notifications.
+  # Keep one replica to prevent each replica from processing the same event.
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cheapkart-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cheapkart-backend
+        app.kubernetes.io/part-of: cheapkart
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: backend
+          image: vikrant9850/cheapkart-backend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          envFrom:
+            # Secret first; ConfigMap values below intentionally override
+            # non-secret development settings from backend/.env.
+            - secretRef:
+                name: cheapkart-backend-secrets
+            - configMapRef:
+                name: cheapkart-backend-config
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
