@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: vikrant9850/cheapkart-frontend:3dad01c40f289fffe63fe5bd10063450f0f8ec2e
+          image: vikrant9850/cheapkart-frontend:f17afbb93ea33bf84d38c636ade6596bb48ec032
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
